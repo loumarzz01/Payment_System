@@ -1,16 +1,5 @@
-# React + Vite
+⭐Description
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is a secure, full-stack e-commerce checkout pipeline that integrates a responsive React web application with a Node.js and Express backend backend server powered by the official Stripe API.
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+The system operates via a decoupled asynchronous architecture: the client-side UI handles interactive state management—such as tracking complex shopping cart items, computing real-time total prices in GBP via useState, and safely mapping item counts—before transmitting the payload over a secure REST API network channel. The backend server initializes a hosted Stripe Checkout Session by converting standard floating-point numbers into integer format (multiplying by 100 to process calculations directly in the smallest currency unit, pence) and mapping line items into Stripe's native layout framework. This server-side controller isolates sensitive credential variables securely via .env environments, catches potential network anomalies through strict middleware error-boundaries, and hands over control by returning a secure validation URL (sessionl.url) to seamlessly reroute users to Stripe's payment gateway.
