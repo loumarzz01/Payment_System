@@ -1,44 +1,48 @@
 // Connected Discord-Github, Discord Username: l.mrz, Roblox Username: loumarzzz00
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom"; //Used for page navigation
 
-import { RiArrowGoBackFill } from "react-icons/ri";
+import { RiArrowGoBackFill } from "react-icons/ri"; //Used for the arrow icon
 
-import { useState, useEffect } from "react";
+import { useState, useEffect } from "react"; //React hooks import
 
-
-import "./styles.css";
-
+import { supabase } from './supabaseClient'; //imports the supabaseClient file which includes the supabaseurl and anon key
 
 
-export default function Cart({ cart, setCart, count, setCount, total, setTotal}) {
-    const navigate = useNavigate();
+import "./styles.css"; //Imports the style css file for the cart
 
-    const [isVisible, setIsVisible] = useState(false);
+
+
+
+
+export default function Cart({ cart, setCart, count, setCount, total, setTotal}) { //This exports the cart function with the cart, setCart, count, setCount, total and setTotal parameters
+    const navigate = useNavigate(); //When useNavigate is called, the function is stored in the navigate variable
+
+    const [isVisible, setIsVisible] = useState(false); //The react useState hook creates the value 'isVisible' and 'setIsVisible' is a function that changes the value. The initial value is false
 
 
     
-    const handleQuantityChange = (item, amount) => { //This handles the incrementing and decrementing of the item counts.
+    const handleQuantityChange = (item, amount) => { //This is a function that either increases or decreases the amount of items in the cart through plus and minus buttons
         
-        const updatedCart = cart.map((currentItem) => {
+        const updatedCart = cart.map((currentItem) => { //This is a function that goes through the items of the cart array using the 'currentItem' variable as a paramter
 
-            if (currentItem.id === item.id) {
+            if (currentItem.id === item.id) { //If the id of the item clicked is equal to the currentItem (this refers to the current item that the map is looping through)
 
-                const newCount = currentItem.count+amount;
+                const newCount = currentItem.count + amount; //newCount takes the current item's count in the looping map and adds the integer amount parameter to it
 
                 return {
-                    ...currentItem,
-                    count: newCount
+                    ...currentItem, 
+                    count: newCount //The newCount variable is then pushed to the current item 'count' property
                 };
         
             } else {
-                return currentItem;
+                return currentItem; //If the id of the current item being checked is not equal to the passed item's id, then don't make any changes
             }
         })
 
-        setCart(updatedCart);
+        setCart(updatedCart); //the setCart function is then set to the new cart
 
-        const finalCart = updatedCart.filter((currentItem) => { //After updating the count, we filter the cart to remove any items that have a count of 0 to ensure the UI stays clean and reflects only active purchases.
+        const finalCart = updatedCart.filter((currentItem) => { //This creates a new variable that checks each item in the updatedCart array and if the item is less than 0 is is removed from the array
             if (currentItem.count > 0) {
                 return true;
             } else {
@@ -46,53 +50,51 @@ export default function Cart({ cart, setCart, count, setCount, total, setTotal})
             }
         })
 
-        setCart(finalCart);
+        setCart(finalCart); //The setCart function is then updated again to have this filter
 
 
-        const priceOfItem = Number(item.price);
-        const priceChange = amount * priceOfItem;
+        const priceOfItem = Number(item.price); //this changes the item.price property to a number
+        const priceChange = amount * priceOfItem; //The price change is equal to the amount multiplied by the price
 
 
-        const newTotal = total + priceChange;
-        setTotal(newTotal);
+        const newTotal = total + priceChange; //'total' is a parameter that is passed by another page, which represents the total price of the items in the cart. now this newTotal variable just adds the change made by the minus or plus button to the original total
+        setTotal(newTotal); //the total function is then updated to hold the newTotal variable value
 
 
-        const newCount = count + amount;
-        setCount(newCount);
+        const newCount = count + amount; //This makes it so that the quantity of the item visibly changes after it is clicked.
+        setCount(newCount); //the setCount function is updated to hold the value of newCount
     }
 
-    useEffect(() => {
-        setIsVisible(true); //Runs when the component is first rendered, setting the isVisible state to true which triggers the animation to make the item fade in and slide up.
-    }, []);
+    useEffect(() => { //useEffect means run once a component loads. in this case we use '[]' so it runs whenever the screen refreshes
+        setIsVisible(true); //so when the screen refreshes the setIsVisible function is set to true
+    }, []); 
 
-    const handleCheckout = async () => { //Redirects the user to the checkout page
-    try {
+    const handleCheckout = async () => {  //Runs when the checkout button is clicked
+        try { //try is used incase the function fails
+            const {data, error} = await supabase.functions.invoke("clever-processor", { //runs the function created in supabase. when it runs it will turn the data and any errors
+                body: {
+                    items: cart, //The cart is sent to supabase
+                },
+            })
 
-        const response = await fetch('http://localhost:4242/checkout', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ items: cart }),
-        });
+            if (error) { //If there is any error, it will be shown in the console
+                console.log(error)
+                return;
+            }
 
-        const data = await response.json();
-
-        console.log(data);
-
-        if (data.url) {
-            window.location.assign(data.url);
+            if (data?.url) { //If the data exists, the user will be redirected to the payment link
+                window.location.assign(data.url) //User is redirected to the new url
+            }
+        } catch (err) {
+            console.log(err); //Any errors of the function will be shown in the console
         }
-
-    } catch (error) {
-        console.log(error);
+        
     }
-};
 
     return (
         <div style={{
-            opacity: isVisible ? 1 : 0,
-            transform: isVisible ? "translateY(0)" : "translateY(40px)",
+            opacity: isVisible ? 1 : 0, //If isVisible is true then set the opacity to 1, if false set it to 0
+            transform: isVisible ? "translateY(0)" : "translateY(40px)", //If isVisible is false move it down 40px
             transition: 'opacity 0.8s ease-out, transform 0.8s ease-out',
             flexDirection: "column", 
             padding: "0px 20px", 
@@ -105,7 +107,7 @@ export default function Cart({ cart, setCart, count, setCount, total, setTotal})
 
                 
             
-
+            {/* Below I have added commentation above each html tag so you know what each of their roles are*/}
             
 
             {/* Shopping cart box*/}
@@ -141,7 +143,7 @@ export default function Cart({ cart, setCart, count, setCount, total, setTotal})
                             <h2 style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', textAlign: "center", fontSize: '16px' }}>£{item.price}</h2>
 
                             <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: '10px'}}>
-                                {/* Minus button */}
+                                {/* Minus button which passes the parameters to the handleQuantity change function when clicked */}
                                 <button onClick={() => handleQuantityChange(item, -1)}style={{ cursor: 'pointer', backgroundColor: '#ecececf1', border: 'none', borderRadius: '10px', width: '25px', height: '25px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
                                     <h2 style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', textAlign: "center", fontSize: '14px', color: '#000000'}}>-</h2>
                                 </button>
@@ -149,7 +151,7 @@ export default function Cart({ cart, setCart, count, setCount, total, setTotal})
                                 {/* Item count */}
                                 <h2 style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', textAlign: "center", fontSize: '14px', color: '#000000'}}>{item.count}</h2>
 
-                                {/* Add button */}
+                                {/* Add button passes parameters to the handleQuantity change function when clicked */}
                                 <button onClick={() => handleQuantityChange(item, 1)} style={{ cursor: 'pointer', backgroundColor: '#ecececf1', border: 'none', borderRadius: '10px', width: '25px', height: '25px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
                                     <h2 style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', textAlign: "center", fontSize: '14px', color: '#000000'}}>+</h2>
                                 </button>
